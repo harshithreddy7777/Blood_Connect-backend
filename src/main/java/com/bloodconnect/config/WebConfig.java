@@ -20,17 +20,38 @@ public class WebConfig implements WebMvcConfigurer {
      * Defaults to localhost dev origins; override with CORS_ALLOWED_ORIGINS env var in production.
      * Example: https://blood-connect-frontend.onrender.com
      */
-    @Value("${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173,https://blood-connect-frontend-eta.vercel.app}")
     private String allowedOriginsRaw;
 
-    private List<String> allowedOrigins() {
-        return Arrays.asList(allowedOriginsRaw.split(","));
+    private List<String> allowedOriginPatterns() {
+        java.util.List<String> list = new java.util.ArrayList<>();
+        if (allowedOriginsRaw != null && !allowedOriginsRaw.isBlank()) {
+            for (String origin : allowedOriginsRaw.split(",")) {
+                String trimmed = origin.trim();
+                if (!trimmed.isEmpty() && !list.contains(trimmed)) {
+                    list.add(trimmed);
+                }
+            }
+        }
+        if (!list.contains("https://*.vercel.app")) {
+            list.add("https://*.vercel.app");
+        }
+        if (!list.contains("https://*.onrender.com")) {
+            list.add("https://*.onrender.com");
+        }
+        if (!list.contains("http://localhost:[*]")) {
+            list.add("http://localhost:[*]");
+        }
+        if (!list.contains("http://127.0.0.1:[*]")) {
+            list.add("http://127.0.0.1:[*]");
+        }
+        return list;
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins().toArray(new String[0]))
+                .allowedOriginPatterns(allowedOriginPatterns().toArray(new String[0]))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true);
@@ -46,7 +67,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins());
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
