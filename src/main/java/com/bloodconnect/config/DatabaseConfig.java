@@ -56,7 +56,7 @@ public class DatabaseConfig {
                 if (query != null && !query.isBlank()) {
                     jdbcUrl += "?" + query;
                 } else if (!jdbcUrl.contains("sslmode")) {
-                    jdbcUrl += "?sslmode=require";
+                    jdbcUrl += "?sslmode=prefer";
                 }
 
                 config.setJdbcUrl(jdbcUrl);
